@@ -3,292 +3,536 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kanji Renderer - Dark Mode</title>
-    <!-- Import Google Fonts for Japanese Standard and Calligraphy styles -->
+    <title>Kanji Renderer V5 - Ultimate Font Gallery</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Yuji+Boku&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kaisei+Tokumin:wght@700&family=Klee+One:wght@600&family=Noto+Sans+JP:wght@400;700&family=Yuji+Boku&family=Yuji+Mai&family=Yuji+Syuku&family=Zen+Antique&display=swap" rel="stylesheet">
     <style>
+        /* Định nghĩa CSS Variables cho 2 chế độ màu */
+        :root {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --container-bg: #1e1e1e;
+            --title-color: #ffffff;
+            --input-bg: #2a2a2a;
+            --input-border: #3a3a3a;
+            --input-text: #ffffff;
+            --box-bg: #161616;
+            --box-border: #444444;
+            --grid-line: #333333;
+            --grid-main: #444444;
+            --suggest-bg: #2d2d2d;
+            --suggest-border: #444444;
+            --suggest-text: #e0e0e0;
+            --hint-color: #666666;
+            --scroll-thumb: #555555;
+        }
+
+        [data-theme="light"] {
+            --bg-color: #f5f7fb;
+            --text-color: #333333;
+            --container-bg: #ffffff;
+            --title-color: #111111;
+            --input-bg: #ffffff;
+            --input-border: #cccccc;
+            --input-text: #222222;
+            --box-bg: #fcfcfc;
+            --box-border: #bbbbbb;
+            --grid-line: #dddddd;
+            --grid-main: #999999;
+            --suggest-bg: #eeeeee;
+            --suggest-border: #cccccc;
+            --suggest-text: #333333;
+            --hint-color: #888888;
+            --scroll-thumb: #cccccc;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            transition: background-color 0.3s, border-color 0.3s, color 0.3s;
         }
+
         body {
-            background-color: #121212;
-            color: #e0e0e0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
             padding: 20px;
         }
+
         .container {
-            max-width: 650px;
+            max-width: 1000px;
             width: 100%;
-            background-color: #1e1e1e;
-            padding: 30px;
+            background-color: var(--container-bg);
+            padding: 25px 30px;
             border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-        }
-        h1 {
-            text-align: center;
-            margin-bottom: 25px;
-            font-size: 22px;
-            color: #ffffff;
-            letter-spacing: 0.5px;
-        }
-        .input-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
-            color: #b0b0b0;
-            font-weight: 500;
-        }
-        input[type="text"] {
-            width: 100%;
-            padding: 12px;
-            background-color: #2a2a2a;
-            border: 2px solid #3a3a3a;
-            border-radius: 6px;
-            color: #fff;
-            font-size: 16px;
-            transition: border-color 0.3s, background-color 0.3s;
-        }
-        input[type="text"]:focus {
-            outline: none;
-            border-color: #4f46e5;
-            background-color: #2d2d2d;
-        }
-        .hint-text {
-            font-size: 12px;
-            color: #666;
-            margin-top: 5px;
-        }
-        /* Suggestions styling for multi-matching Kanji */
-        .suggestions {
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
             display: flex;
-            gap: 8px;
-            margin-top: -10px;
-            margin-bottom: 20px;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        /* Top Section: Controls + Render Box */
+        .top-section {
+            display: flex;
             flex-wrap: wrap;
-            min-height: 30px;
+            gap: 40px;
         }
-        .btn-suggest {
-            background-color: #2d2d2d;
-            color: #e0e0e0;
-            border: 1px solid #444;
-            padding: 4px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-family: 'Noto Sans JP', sans-serif;
-            font-size: 14px;
-            transition: all 0.2s ease;
-        }
-        .btn-suggest:hover {
-            background-color: #4f46e5;
-            border-color: #4f46e5;
-            color: #fff;
-        }
-        .btn-suggest.active {
-            background-color: #4f46e5;
-            border-color: #4f46e5;
-            color: #fff;
-            font-weight: bold;
-        }
-        /* Render Area */
-        .render-area {
+
+        .left-panel {
+            flex: 1;
+            min-width: 300px;
             display: flex;
-            justify-content: space-around;
-            margin-top: 25px;
-            flex-wrap: wrap;
-            gap: 20px;
-            border-top: 1px solid #2d2d2d;
-            padding-top: 25px;
+            flex-direction: column;
         }
-        .render-box-wrapper {
-            text-align: center;
-        }
-        .render-title {
-            font-size: 13px;
-            color: #888;
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .kanji-box {
-            position: relative;
-            width: 220px;
-            height: 220px;
-            background-color: #161616;
-            border: 2px solid #444;
-            border-radius: 8px;
+
+        .right-panel {
+            flex: 1;
+            min-width: 350px;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
-            box-shadow: inset 0 0 12px rgba(0,0,0,0.6);
         }
+
+        /* Header & Control Panel */
+        .header-panel {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--input-border);
+            padding-bottom: 15px;
+        }
+
+        h1 {
+            font-size: 20px;
+            color: var(--title-color);
+            letter-spacing: 0.5px;
+        }
+
+        /* Switch Toggle Style */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+            font-weight: 500;
+            gap: 8px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 22px;
+        }
+
+        .switch input { opacity: 0; width: 0; height: 0; }
+
+        .slider {
+            position: absolute; cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #555555; transition: .3s; border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute; content: ""; height: 14px; width: 14px;
+            left: 4px; bottom: 4px; background-color: white;
+            transition: .3s; border-radius: 50%;
+        }
+
+        input:checked + .slider { background-color: #4f46e5; }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        /* Layout CSS */
+        .input-group { margin-top: 15px; }
+
+        .row-controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .row-controls .input-group {
+            flex: 1; margin-top: 0;
+        }
+
+        label {
+            display: block; margin-bottom: 6px; font-size: 13px;
+            color: var(--text-color); font-weight: 500;
+        }
+
+        input[type="text"], input[type="number"] {
+            width: 100%; padding: 10px 12px;
+            background-color: var(--input-bg); border: 2px solid var(--input-border);
+            border-radius: 6px; color: var(--input-text); font-size: 15px;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus {
+            outline: none; border-color: #4f46e5;
+        }
+
+        .hint-text {
+            font-size: 11px; color: var(--hint-color); margin-top: 5px;
+        }
+
+        /* Color Picking Component */
+        .color-group {
+            background: var(--input-bg); padding: 10px 12px;
+            border-radius: 8px; border: 1px solid var(--input-border);
+            display: flex; align-items: center; gap: 15px;
+        }
+
+        .color-picker-wrapper {
+            position: relative; width: 40px; height: 40px;
+            overflow: hidden; border-radius: 6px;
+            border: 2px solid var(--box-border); flex-shrink: 0;
+        }
+
+        #input-color {
+            position: absolute; top: -5px; left: -5px; width: 50px; height: 50px;
+            cursor: pointer; border: none; background: transparent;
+        }
+
+        .color-fields { display: flex; gap: 10px; flex: 1; }
+        .color-field-item { flex: 1; display: flex; align-items: center; gap: 8px; }
+        .color-field-item span { font-size: 11px; font-weight: bold; color: var(--hint-color); }
+        
+        .color-field-item input {
+            width: 100%; padding: 6px; font-size: 13px;
+            border-radius: 4px; border: 1px solid var(--input-border);
+            background: var(--box-bg); color: var(--input-text);
+        }
+        .color-field-item input:focus { outline: none; border-color: #4f46e5; }
+
+        /* Suggestions Area */
+        .suggestions {
+            display: flex; gap: 8px; margin-top: 15px; flex-wrap: wrap; min-height: 30px;
+        }
+
+        .btn-suggest {
+            background-color: var(--suggest-bg); color: var(--suggest-text);
+            border: 1px solid var(--suggest-border); padding: 5px 12px;
+            border-radius: 4px; cursor: pointer; font-family: 'Noto Sans JP', sans-serif;
+            font-size: 14px;
+        }
+
+        .btn-suggest:hover, .btn-suggest.active {
+            background-color: #4f46e5; border-color: #4f46e5; color: #fff;
+        }
+
+        /* Render Area (Right Panel) */
+        .render-title {
+            font-size: 15px; color: #4f46e5; margin-bottom: 12px;
+            text-transform: uppercase; letter-spacing: 1px; font-weight: bold;
+        }
+
+        .kanji-box {
+            position: relative; width: 100%; max-width: 400px; aspect-ratio: 1 / 1;
+            background-color: var(--box-bg); border: 2px solid var(--box-border);
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            overflow: hidden; box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
+        }
+
         .kanji-text {
-            font-size: 115px;
-            z-index: 2;
-            user-select: none;
-            color: #ffffff;
+            font-size: 350px; z-index: 2; user-select: none; line-height: 1;
         }
-        /* Fonts definition */
-        .font-standard {
-            font-family: 'Noto Sans JP', sans-serif;
-        }
-        .font-calligraphy {
-            font-family: 'Yuji Boku', serif;
-        }
-        /* Grid Lines System */
+
+        /* Grid Lines Layer */
         .grid-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            pointer-events: none;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1; pointer-events: none;
         }
-        .grid-overlay line {
-            stroke: #333333;
-            stroke-dasharray: 4 4;
-            stroke-width: 1.2;
+
+        .grid-overlay line { stroke: var(--grid-line); stroke-dasharray: 4 4; stroke-width: 1.5; }
+        .grid-overlay .main-cross { stroke: var(--grid-main); stroke-dasharray: 5 4; }
+
+        /* =========================================
+           NEW V5: BOTTOM FONT GALLERY 
+           ========================================= */
+        .bottom-section {
+            border-top: 1px solid var(--input-border);
+            padding-top: 20px;
         }
-        .grid-overlay .main-cross {
-            stroke: #444444;
-            stroke-dasharray: 5 4;
+
+        .font-gallery-title {
+            font-size: 14px; font-weight: bold; color: var(--text-color);
+            margin-bottom: 12px; display: flex; justify-content: space-between;
         }
+
+        .font-scroll-container {
+            display: flex; gap: 12px; overflow-x: auto;
+            padding-bottom: 15px; scroll-behavior: smooth;
+        }
+
+        /* Custom Scrollbar */
+        .font-scroll-container::-webkit-scrollbar { height: 8px; }
+        .font-scroll-container::-webkit-scrollbar-track { background: var(--input-bg); border-radius: 4px; }
+        .font-scroll-container::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 4px; }
+
+        .font-card {
+            flex: 0 0 110px; background: var(--input-bg);
+            border: 2px solid var(--input-border); border-radius: 8px;
+            padding: 12px 5px; text-align: center; cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+        }
+
+        .font-card:hover { border-color: #888; }
+        .font-card.active { border-color: #4f46e5; background: var(--suggest-bg); box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2); }
+
+        .font-preview-char {
+            font-size: 38px; line-height: 1;
+        }
+
+        .font-name { font-size: 11px; font-weight: bold; color: var(--hint-color); }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Bộ Render Chữ Kanji (Dark Mode)</h1>
-    
-    <!-- Ô 1: Nhập chữ phiên âm Hán Việt -->
-    <div class="input-group">
-        <label for="input-hanviet">1. Ô nhập chữ phiên âm Hán Việt</label>
-        <input type="text" id="input-hanviet" placeholder="Ví dụ: gian, thuy, hieu, cao, dien, lap..." autocomplete="off">
-        <div class="hint-text">Nhập tiếng Việt không dấu hoặc có dấu. Hệ thống sẽ tự động xóa chữ bên ô Kanji.</div>
-    </div>
+    <div class="top-section">
+        <div class="left-panel">
+            <div class="header-panel">
+                <h1>Kanji Renderer V5</h1>
+                <div class="toggle-container">
+                    <span>Sáng</span>
+                    <label class="switch">
+                        <input type="checkbox" id="theme-toggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                    <span>Tối</span>
+                </div>
+            </div>
+            
+            <div class="row-controls">
+                <div class="input-group">
+                    <label for="input-kanji">Ô gõ chữ Kanji</label>
+                    <input type="text" id="input-kanji" placeholder="Nhập chữ..." autocomplete="off">
+                </div>
+                
+                <div class="input-group" style="flex: 0 0 120px;">
+                    <label for="input-fontsize">Cỡ chữ (px)</label>
+                    <input type="number" id="input-fontsize" value="350" min="30" max="450" step="10">
+                </div>
+            </div>
 
-    <!-- Khu vực hiển thị các lựa chọn Kanji tương ứng âm Hán Việt -->
-    <div class="suggestions" id="suggestions-area"></div>
+            <div class="input-group">
+                <label>Màu sắc nét chữ</label>
+                <div class="color-group">
+                    <div class="color-picker-wrapper">
+                        <input type="color" id="input-color" value="#ffffff">
+                    </div>
+                    <div class="color-fields">
+                        <div class="color-field-item">
+                            <span>HEX</span>
+                            <input type="text" id="input-hex" value="#FFFFFF" autocomplete="off">
+                        </div>
+                        <div class="color-field-item">
+                            <span>RGB</span>
+                            <input type="text" id="input-rgb" value="255, 255, 255" autocomplete="off">
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-    <!-- Ô 2: Nhập trực tiếp chữ Kanji -->
-    <div class="input-group">
-        <label for="input-kanji">2. Ô nhập chữ Kanji trực tiếp</label>
-        <input type="text" id="input-kanji" placeholder="Nhập một hoặc nhiều ký tự Kanji..." autocomplete="off">
-        <div class="hint-text">Gõ hoặc dán chữ Kanji vào đây. Hệ thống sẽ tự động xóa chữ bên ô Hán Việt.</div>
-    </div>
+            <div class="input-group">
+                <label for="input-hanviet">Ô gõ phiên âm Hán Việt</label>
+                <input type="text" id="input-hanviet" placeholder="Ví dụ: gian, thuy, hieu..." autocomplete="off">
+                <div class="hint-text">Gõ ô nào, hệ thống tự động xóa dữ liệu ô còn lại.</div>
+            </div>
 
-    <!-- Ô 3: Khu vực render kết quả -->
-    <div class="render-area">
-        <!-- Font Đánh Máy -->
-        <div class="render-box-wrapper">
-            <div class="render-title">Font Đánh Máy (Standard)</div>
+            <div class="suggestions" id="suggestions-area"></div>
+        </div>
+
+        <div class="right-panel">
+            <div class="render-title" id="current-font-label">Đang dùng: Yuji Syuku</div>
             <div class="kanji-box">
                 <svg class="grid-overlay" viewBox="0 0 100 100" preserveAspectRatio="none">
-                    <!-- Các đường chéo ô chữ mễ -->
                     <line x1="0" y1="0" x2="100" y2="100" />
                     <line x1="100" y1="0" x2="0" y2="100" />
-                    <!-- Đường thập chính giữa -->
                     <line x1="50" y1="0" x2="50" y2="100" class="main-cross" />
                     <line x1="0" y1="50" x2="100" y2="50" class="main-cross" />
                 </svg>
-                <div class="kanji-text font-standard" id="output-standard">-</div>
+                <div class="kanji-text" id="output-kanji">-</div>
             </div>
         </div>
+    </div>
 
-        <!-- Font Thư Pháp -->
-        <div class="render-box-wrapper">
-            <div class="render-title">Font Thư Pháp (Calligraphy)</div>
-            <div class="kanji-box">
-                <svg class="grid-overlay" viewBox="0 0 100 100" preserveAspectRatio="none">
-                    <!-- Các đường chéo ô chữ mễ -->
-                    <line x1="0" y1="0" x2="100" y2="100" />
-                    <line x1="100" y1="0" x2="0" y2="100" />
-                    <!-- Đường thập chính giữa -->
-                    <line x1="50" y1="0" x2="50" y2="100" class="main-cross" />
-                    <line x1="0" y1="50" x2="100" y2="50" class="main-cross" />
-                </svg>
-                <div class="kanji-text font-calligraphy" id="output-calligraphy">-</div>
-            </div>
+    <div class="bottom-section">
+        <div class="font-gallery-title">
+            <span>Bộ Sưu Tập Font Chữ (Click để chọn)</span>
         </div>
+        <div class="font-scroll-container" id="font-gallery">
+            </div>
     </div>
 </div>
 
 <script>
-    // Dữ liệu mẫu map từ Hán Việt sang Kanji (dựa trên danh sách chữ phổ biến của bạn)
+    // Dictionary đồng bộ mẫu
     const dictionary = {
-        "gian": ["間"],
-        "thủy": ["水"], "thuy": ["水"],
+        "gian": ["間"], "thủy": ["水"], "thuy": ["水"],
         "hiệu": ["校", "効", "号"], "hieu": ["校", "効", "号"],
-        "cao": ["高"],
-        "cổ": ["古"], "co": ["古"],
-        "dạ": ["夜"], "da": ["夜"],
-        "điền": ["田"], "dien": ["田"],
-        "điện": ["電"], "dien": ["田", "電"],
-        "độc": ["読"], "doc": ["読"],
-        "đông": ["東"], "dong": ["東"],
-        "hắc": ["黒"], "hac": ["黒"],
-        "hậu": ["後"], "hau": ["後"],
-        "hội": ["会"], "hoi": ["会"],
-        "hữu": ["友"], "huu": ["友", "休"],
-        "hưu": ["休"],
-        "khẩu": ["口"], "khau": ["口"],
-        "khí": ["気"], "khi": ["気"],
-        "không": ["空"], "khong": ["空"],
-        "kiến": ["見"], "kien": ["見"],
-        "kim": ["金"],
-        "lập": ["立"], "lap": ["立"],
-        "học": ["学"], "hoc": ["学"],
-        "sinh": ["生"]
+        "cao": ["高"], "cổ": ["古"], "co": ["古"], "dạ": ["夜"], "da": ["夜"],
+        "điền": ["田"], "dien": ["田"], "điện": ["電"], "học": ["学"], "sinh": ["生"],
+        "mỹ": ["美"], "my": ["美"], "long": ["竜", "龍"], "đạo": ["道"], "dao": ["道"]
     };
+
+    // Danh sách các Font hỗ trợ
+    const fontLibrary = [
+        { id: 'f-standard', name: 'Đánh Máy', family: "'Noto Sans JP', sans-serif" },
+        { id: 'f-yuji-syuku', name: 'Yuji Syuku', family: "'Yuji Syuku', serif" }, // Mặc định V5 (Nét bút trang trọng)
+        { id: 'f-yuji-boku', name: 'Yuji Boku', family: "'Yuji Boku', serif" },   // Nét ướt cũ
+        { id: 'f-yuji-mai', name: 'Yuji Mai', family: "'Yuji Mai', serif" },      // Nét bay bướm
+        { id: 'f-klee', name: 'Klee One', family: "'Klee One', cursive" },        // Nét bút chì/viết tay mộc mạc
+        { id: 'f-kaisei', name: 'Kaisei', family: "'Kaisei Tokumin', serif" },    // Nét thanh đậm hiện đại
+        { id: 'f-zen', name: 'Zen Antique', family: "'Zen Antique', serif" }      // Nét cổ điển
+    ];
+
+    let currentActiveFontId = 'f-yuji-syuku'; // Font mặc định lúc mới vào
 
     const hvInput = document.getElementById('input-hanviet');
     const kjInput = document.getElementById('input-kanji');
-    const outStandard = document.getElementById('output-standard');
-    const outCalligraphy = document.getElementById('output-calligraphy');
+    const fsInput = document.getElementById('input-fontsize');
+    const themeToggle = document.getElementById('theme-toggle');
+    const outKanji = document.getElementById('output-kanji');
+    const fontLabel = document.getElementById('current-font-label');
     const suggestionsArea = document.getElementById('suggestions-area');
+    const galleryContainer = document.getElementById('font-gallery');
 
-    // Hàm cập nhật chữ lên khung render
+    // Các thành phần màu sắc
+    const colorInput = document.getElementById('input-color');
+    const hexInput = document.getElementById('input-hex');
+    const rgbInput = document.getElementById('input-rgb');
+
+    // Khởi tạo Font Gallery
+    function buildFontGallery() {
+        galleryContainer.innerHTML = '';
+        fontLibrary.forEach(font => {
+            const card = document.createElement('div');
+            card.className = `font-card ${font.id === currentActiveFontId ? 'active' : ''}`;
+            card.id = font.id;
+            
+            // Chữ mẫu lúc đầu
+            const charDiv = document.createElement('div');
+            charDiv.className = 'font-preview-char';
+            charDiv.style.fontFamily = font.family;
+            charDiv.textContent = '-'; 
+
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'font-name';
+            nameDiv.textContent = font.name;
+
+            card.appendChild(charDiv);
+            card.appendChild(nameDiv);
+
+            // Xử lý sự kiện click đổi font
+            card.addEventListener('click', () => {
+                document.querySelectorAll('.font-card').forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+                currentActiveFontId = font.id;
+                
+                outKanji.style.fontFamily = font.family;
+                fontLabel.textContent = `Đang dùng: ${font.name}`;
+            });
+
+            galleryContainer.appendChild(card);
+        });
+
+        // Áp dụng font mặc định lên ô Render to
+        const defaultFont = fontLibrary.find(f => f.id === currentActiveFontId);
+        outKanji.style.fontFamily = defaultFont.family;
+        fontLabel.textContent = `Đang dùng: ${defaultFont.name}`;
+    }
+
+    // Cập nhật text cho cả Ô Render to và toàn bộ ô Preview nhỏ
     function updateRender(char) {
-        if (char) {
-            outStandard.textContent = char;
-            outCalligraphy.textContent = char;
-        } else {
-            outStandard.textContent = "-";
-            outCalligraphy.textContent = "-";
+        const textToDisplay = char || "-";
+        outKanji.textContent = textToDisplay;
+        
+        // Cập nhật các ô preview
+        document.querySelectorAll('.font-preview-char').forEach(el => {
+            el.textContent = textToDisplay;
+        });
+    }
+
+    // Xử lý Màu sắc
+    function hexToRgb(hex) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) } : null;
+    }
+
+    function rgbToHex(r, g, b) {
+        return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+    }
+
+    function updateColorOutputs(hex, source) {
+        if (source !== 'picker') colorInput.value = hex;
+        if (source !== 'hex') hexInput.value = hex.toUpperCase();
+        
+        const rgb = hexToRgb(hex);
+        if (rgb && source !== 'rgb') {
+            rgbInput.value = `${rgb.r}, ${rgb.g}, ${rgb.b}`;
         }
+        
+        // Gán màu lên ô Kanji chính
+        outKanji.style.color = hex;
+        
+        // Gán màu lên cả các ô preview nhỏ ở dưới để nhìn cho đồng bộ
+        document.querySelectorAll('.font-preview-char').forEach(el => {
+            el.style.color = hex;
+        });
     }
 
-    // Hàm xóa danh sách gợi ý nút bấm
-    function clearSuggestions() {
-        suggestionsArea.innerHTML = "";
-    }
+    colorInput.addEventListener('input', (e) => updateColorOutputs(e.target.value, 'picker'));
+    
+    hexInput.addEventListener('input', (e) => {
+        let val = e.target.value.trim();
+        if (val && !val.startsWith('#')) val = '#' + val;
+        if (/^#[0-9A-Fa-f]{6}$/.test(val)) updateColorOutputs(val, 'hex');
+    });
 
-    // Xử lý sự kiện khi gõ vào ô 1 (Hán Việt)
+    rgbInput.addEventListener('input', (e) => {
+        let matches = e.target.value.match(/\d+/g);
+        if (matches && matches.length === 3) {
+            let r = Math.min(255, Math.max(0, parseInt(matches[0])));
+            let g = Math.min(255, Math.max(0, parseInt(matches[1])));
+            let b = Math.min(255, Math.max(0, parseInt(matches[2])));
+            updateColorOutputs(rgbToHex(r, g, b), 'rgb');
+        }
+    });
+
+    // Theme Mode Toggle
+    themeToggle.addEventListener('change', () => {
+        if (themeToggle.checked) {
+            document.documentElement.removeAttribute('data-theme');
+            updateColorOutputs("#ffffff", 'system');
+        } else {
+            document.documentElement.setAttribute('data-theme', 'light');
+            updateColorOutputs("#111111", 'system');
+        }
+    });
+
+    // Thay đổi Font Size
+    fsInput.addEventListener('input', () => {
+        let size = fsInput.value;
+        if (size < 30) size = 30; if (size > 450) size = 450;
+        outKanji.style.fontSize = size + 'px';
+    });
+
+    // Logic Hán Việt & Kanji
+    function clearSuggestions() { suggestionsArea.innerHTML = ""; }
+
     hvInput.addEventListener('input', () => {
         const value = hvInput.value.trim().toLowerCase();
-        
         if (value !== "") {
-            // Quy tắc loại trừ: Đang nhập ô này thì xóa ô kia
-            kjInput.value = "";
-            clearSuggestions();
-            
+            kjInput.value = ""; clearSuggestions();
             if (dictionary[value]) {
                 const listKanji = dictionary[value];
-                
-                // Nếu âm Hán Việt map ra nhiều chữ Kanji (Ví dụ: hiệu -> 校, 効, 号)
                 if (listKanji.length > 1) {
                     listKanji.forEach((kanji, idx) => {
                         const btn = document.createElement('button');
@@ -296,42 +540,26 @@
                         btn.textContent = kanji;
                         btn.addEventListener('click', () => {
                             document.querySelectorAll('.btn-suggest').forEach(b => b.classList.remove('active'));
-                            btn.classList.add('active');
-                            updateRender(kanji);
+                            btn.classList.add('active'); updateRender(kanji);
                         });
                         suggestionsArea.appendChild(btn);
                     });
-                    // Mặc định render chữ đầu tiên trong danh sách tương ứng
                     updateRender(listKanji[0]);
-                } else {
-                    // Nếu chỉ có duy nhất 1 chữ
-                    updateRender(listKanji[0]);
-                }
-            } else {
-                updateRender("?"); // Không tìm thấy trong từ điển demo
-            }
-        } else {
-            clearSuggestions();
-            updateRender("-");
-        }
+                } else updateRender(listKanji[0]);
+            } else updateRender("?");
+        } else { clearSuggestions(); updateRender("-"); }
     });
 
-    // Xử lý sự kiện khi gõ vào ô 2 (Kanji trực tiếp)
     kjInput.addEventListener('input', () => {
         const value = kjInput.value.trim();
-        
         if (value !== "") {
-            // Quy tắc loại trừ: Đang nhập ô này thì xóa ô kia
-            hvInput.value = "";
-            clearSuggestions();
-            
-            // Trích xuất lấy ký tự đầu tiên để hiển thị lớn lên khung
-            const firstChar = value.charAt(0);
-            updateRender(firstChar);
-        } else {
-            updateRender("-");
-        }
+            hvInput.value = ""; clearSuggestions(); updateRender(value.charAt(0));
+        } else updateRender("-");
     });
+
+    // Khởi chạy lúc load trang
+    buildFontGallery();
+    updateColorOutputs("#545454", 'system'); // Mặc định nền tối chữ trắng
 </script>
 
 </body>
