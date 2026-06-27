@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanji Renderer - Dark Mode</title>
+    <!-- Import Google Fonts for Japanese Standard and Calligraphy styles -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Yuji+Boku&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 650px;
+            width: 100%;
+            background-color: #1e1e1e;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 22px;
+            color: #ffffff;
+            letter-spacing: 0.5px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #b0b0b0;
+            font-weight: 500;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            background-color: #2a2a2a;
+            border: 2px solid #3a3a3a;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 16px;
+            transition: border-color 0.3s, background-color 0.3s;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #4f46e5;
+            background-color: #2d2d2d;
+        }
+        .hint-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        /* Suggestions styling for multi-matching Kanji */
+        .suggestions {
+            display: flex;
+            gap: 8px;
+            margin-top: -10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            min-height: 30px;
+        }
+        .btn-suggest {
+            background-color: #2d2d2d;
+            color: #e0e0e0;
+            border: 1px solid #444;
+            padding: 4px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Noto Sans JP', sans-serif;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+        .btn-suggest:hover {
+            background-color: #4f46e5;
+            border-color: #4f46e5;
+            color: #fff;
+        }
+        .btn-suggest.active {
+            background-color: #4f46e5;
+            border-color: #4f46e5;
+            color: #fff;
+            font-weight: bold;
+        }
+        /* Render Area */
+        .render-area {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 25px;
+            flex-wrap: wrap;
+            gap: 20px;
+            border-top: 1px solid #2d2d2d;
+            padding-top: 25px;
+        }
+        .render-box-wrapper {
+            text-align: center;
+        }
+        .render-title {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .kanji-box {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            background-color: #161616;
+            border: 2px solid #444;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            box-shadow: inset 0 0 12px rgba(0,0,0,0.6);
+        }
+        .kanji-text {
+            font-size: 115px;
+            z-index: 2;
+            user-select: none;
+            color: #ffffff;
+        }
+        /* Fonts definition */
+        .font-standard {
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+        .font-calligraphy {
+            font-family: 'Yuji Boku', serif;
+        }
+        /* Grid Lines System */
+        .grid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .grid-overlay line {
+            stroke: #333333;
+            stroke-dasharray: 4 4;
+            stroke-width: 1.2;
+        }
+        .grid-overlay .main-cross {
+            stroke: #444444;
+            stroke-dasharray: 5 4;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Bộ Render Chữ Kanji (Dark Mode)</h1>
+    
+    <!-- Ô 1: Nhập chữ phiên âm Hán Việt -->
+    <div class="input-group">
+        <label for="input-hanviet">1. Ô nhập chữ phiên âm Hán Việt</label>
+        <input type="text" id="input-hanviet" placeholder="Ví dụ: gian, thuy, hieu, cao, dien, lap..." autocomplete="off">
+        <div class="hint-text">Nhập tiếng Việt không dấu hoặc có dấu. Hệ thống sẽ tự động xóa chữ bên ô Kanji.</div>
+    </div>
+
+    <!-- Khu vực hiển thị các lựa chọn Kanji tương ứng âm Hán Việt -->
+    <div class="suggestions" id="suggestions-area"></div>
+
+    <!-- Ô 2: Nhập trực tiếp chữ Kanji -->
+    <div class="input-group">
+        <label for="input-kanji">2. Ô nhập chữ Kanji trực tiếp</label>
+        <input type="text" id="input-kanji" placeholder="Nhập một hoặc nhiều ký tự Kanji..." autocomplete="off">
+        <div class="hint-text">Gõ hoặc dán chữ Kanji vào đây. Hệ thống sẽ tự động xóa chữ bên ô Hán Việt.</div>
+    </div>
+
+    <!-- Ô 3: Khu vực render kết quả -->
+    <div class="render-area">
+        <!-- Font Đánh Máy -->
+        <div class="render-box-wrapper">
+            <div class="render-title">Font Đánh Máy (Standard)</div>
+            <div class="kanji-box">
+                <svg class="grid-overlay" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <!-- Các đường chéo ô chữ mễ -->
+                    <line x1="0" y1="0" x2="100" y2="100" />
+                    <line x1="100" y1="0" x2="0" y2="100" />
+                    <!-- Đường thập chính giữa -->
+                    <line x1="50" y1="0" x2="50" y2="100" class="main-cross" />
+                    <line x1="0" y1="50" x2="100" y2="50" class="main-cross" />
+                </svg>
+                <div class="kanji-text font-standard" id="output-standard">-</div>
+            </div>
+        </div>
+
+        <!-- Font Thư Pháp -->
+        <div class="render-box-wrapper">
+            <div class="render-title">Font Thư Pháp (Calligraphy)</div>
+            <div class="kanji-box">
+                <svg class="grid-overlay" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <!-- Các đường chéo ô chữ mễ -->
+                    <line x1="0" y1="0" x2="100" y2="100" />
+                    <line x1="100" y1="0" x2="0" y2="100" />
+                    <!-- Đường thập chính giữa -->
+                    <line x1="50" y1="0" x2="50" y2="100" class="main-cross" />
+                    <line x1="0" y1="50" x2="100" y2="50" class="main-cross" />
+                </svg>
+                <div class="kanji-text font-calligraphy" id="output-calligraphy">-</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Dữ liệu mẫu map từ Hán Việt sang Kanji (dựa trên danh sách chữ phổ biến của bạn)
+    const dictionary = {
+        "gian": ["間"],
+        "thủy": ["水"], "thuy": ["水"],
+        "hiệu": ["校", "効", "号"], "hieu": ["校", "効", "号"],
+        "cao": ["高"],
+        "cổ": ["古"], "co": ["古"],
+        "dạ": ["夜"], "da": ["夜"],
+        "điền": ["田"], "dien": ["田"],
+        "điện": ["電"], "dien": ["田", "電"],
+        "độc": ["読"], "doc": ["読"],
+        "đông": ["東"], "dong": ["東"],
+        "hắc": ["黒"], "hac": ["黒"],
+        "hậu": ["後"], "hau": ["後"],
+        "hội": ["会"], "hoi": ["会"],
+        "hữu": ["友"], "huu": ["友", "休"],
+        "hưu": ["休"],
+        "khẩu": ["口"], "khau": ["口"],
+        "khí": ["気"], "khi": ["気"],
+        "không": ["空"], "khong": ["空"],
+        "kiến": ["見"], "kien": ["見"],
+        "kim": ["金"],
+        "lập": ["立"], "lap": ["立"],
+        "học": ["学"], "hoc": ["学"],
+        "sinh": ["生"]
+    };
+
+    const hvInput = document.getElementById('input-hanviet');
+    const kjInput = document.getElementById('input-kanji');
+    const outStandard = document.getElementById('output-standard');
+    const outCalligraphy = document.getElementById('output-calligraphy');
+    const suggestionsArea = document.getElementById('suggestions-area');
+
+    // Hàm cập nhật chữ lên khung render
+    function updateRender(char) {
+        if (char) {
+            outStandard.textContent = char;
+            outCalligraphy.textContent = char;
+        } else {
+            outStandard.textContent = "-";
+            outCalligraphy.textContent = "-";
+        }
+    }
+
+    // Hàm xóa danh sách gợi ý nút bấm
+    function clearSuggestions() {
+        suggestionsArea.innerHTML = "";
+    }
+
+    // Xử lý sự kiện khi gõ vào ô 1 (Hán Việt)
+    hvInput.addEventListener('input', () => {
+        const value = hvInput.value.trim().toLowerCase();
+        
+        if (value !== "") {
+            // Quy tắc loại trừ: Đang nhập ô này thì xóa ô kia
+            kjInput.value = "";
+            clearSuggestions();
+            
+            if (dictionary[value]) {
+                const listKanji = dictionary[value];
+                
+                // Nếu âm Hán Việt map ra nhiều chữ Kanji (Ví dụ: hiệu -> 校, 効, 号)
+                if (listKanji.length > 1) {
+                    listKanji.forEach((kanji, idx) => {
+                        const btn = document.createElement('button');
+                        btn.className = `btn-suggest ${idx === 0 ? 'active' : ''}`;
+                        btn.textContent = kanji;
+                        btn.addEventListener('click', () => {
+                            document.querySelectorAll('.btn-suggest').forEach(b => b.classList.remove('active'));
+                            btn.classList.add('active');
+                            updateRender(kanji);
+                        });
+                        suggestionsArea.appendChild(btn);
+                    });
+                    // Mặc định render chữ đầu tiên trong danh sách tương ứng
+                    updateRender(listKanji[0]);
+                } else {
+                    // Nếu chỉ có duy nhất 1 chữ
+                    updateRender(listKanji[0]);
+                }
+            } else {
+                updateRender("?"); // Không tìm thấy trong từ điển demo
+            }
+        } else {
+            clearSuggestions();
+            updateRender("-");
+        }
+    });
+
+    // Xử lý sự kiện khi gõ vào ô 2 (Kanji trực tiếp)
+    kjInput.addEventListener('input', () => {
+        const value = kjInput.value.trim();
+        
+        if (value !== "") {
+            // Quy tắc loại trừ: Đang nhập ô này thì xóa ô kia
+            hvInput.value = "";
+            clearSuggestions();
+            
+            // Trích xuất lấy ký tự đầu tiên để hiển thị lớn lên khung
+            const firstChar = value.charAt(0);
+            updateRender(firstChar);
+        } else {
+            updateRender("-");
+        }
+    });
+</script>
+
+</body>
+</html>
