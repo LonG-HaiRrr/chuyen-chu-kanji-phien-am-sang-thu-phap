@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -29,7 +29,7 @@
         }
 
         [data-theme="light"] {
-            --bg-color: #f5f7fb;
+            --bg-color: #747474;
             --text-color: #333333;
             --container-bg: #ffffff;
             --title-color: #111111;
@@ -302,7 +302,7 @@
                 <div class="toggle-container">
                     <span>Sáng</span>
                     <label class="switch">
-                        <input type="checkbox" id="theme-toggle" checked>
+                        <input type="checkbox" id="theme-toggle">
                         <span class="slider"></span>
                     </label>
                     <span>Tối</span>
@@ -325,16 +325,16 @@
                 <label>Màu sắc nét chữ</label>
                 <div class="color-group">
                     <div class="color-picker-wrapper">
-                        <input type="color" id="input-color" value="#ffffff">
+                        <input type="color" id="input-color" value="#545454">
                     </div>
                     <div class="color-fields">
                         <div class="color-field-item">
                             <span>HEX</span>
-                            <input type="text" id="input-hex" value="#FFFFFF" autocomplete="off">
+                            <input type="text" id="input-hex" value="#545454" autocomplete="off">
                         </div>
                         <div class="color-field-item">
                             <span>RGB</span>
-                            <input type="text" id="input-rgb" value="255, 255, 255" autocomplete="off">
+                            <input type="text" id="input-rgb" value="84, 84, 84" autocomplete="off">
                         </div>
                     </div>
                 </div>
@@ -508,12 +508,12 @@
 
     // Theme Mode Toggle
     themeToggle.addEventListener('change', () => {
-        if (themeToggle.checked) {
+        if (themeToggle.checked) { // Đã chuyển sang Tối
             document.documentElement.removeAttribute('data-theme');
-            updateColorOutputs("#ffffff", 'system');
-        } else {
+            updateColorOutputs("#ffffff", 'system'); // Màu trắng cho nền tối
+        } else { // Chuyển lại Sáng
             document.documentElement.setAttribute('data-theme', 'light');
-            updateColorOutputs("#111111", 'system');
+            updateColorOutputs("#545454", 'system'); // Đặt lại màu 84,84,84
         }
     });
 
@@ -559,7 +559,7 @@
 
     // Khởi chạy lúc load trang
     buildFontGallery();
-    updateColorOutputs("#545454", 'system'); // Mặc định nền tối chữ trắng
+    updateColorOutputs("#545454", 'system'); // Mặc định nền sáng chữ #545454 (84, 84, 84)
 </script>
 
 </body>
