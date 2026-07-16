@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kanji Font </title>
+    <title>Kanji Font</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="icon" href="logo.png" type="image/png">
-    <link href="https://fonts.googleapis.com/css2?family=Kaisei+Tokumin:wght@700&family=Klee+One:wght@600&family=Noto+Sans+JP:wght@400;700&family=Yuji+Boku&family=Yuji+Mai&family=Yuji+Syuku&family=Zen+Antique&display=swap" rel="stylesheet">
+    <!-- Đã cập nhật link Google Fonts: Giữ Yuji Syuku, xóa 2 Yuji kia, thêm Sawarabi Mincho và M PLUS Rounded -->
+    <link href="https://fonts.googleapis.com/css2?family=Kaisei+Tokumin:wght@700&family=Klee+One:wght@600&family=M+PLUS+Rounded+1c:wght@500&family=Noto+Sans+JP:wght@400;700&family=Sawarabi+Mincho&family=Yuji+Syuku&family=Zen+Antique&display=swap" rel="stylesheet">
     <style>
         /* Định nghĩa CSS Variables cho 2 chế độ màu */
         :root {
@@ -250,8 +251,12 @@
             z-index: 1; pointer-events: none;
         }
 
-        .grid-overlay line { stroke: var(--grid-line); stroke-dasharray: 4 4; stroke-width: 1.5; }
-        .grid-overlay .main-cross { stroke: var(--grid-main); stroke-dasharray: 5 4; }
+        /* Cập nhật: Ép tất cả các đường (x và +) dùng chung var(--grid-main) và dasharray 5 4 để bằng nhau */
+        .grid-overlay line { 
+            stroke: var(--grid-main); 
+            stroke-dasharray: 5 4; 
+            stroke-width: 1.5; 
+        }
 
         /* =========================================
            NEW V5: BOTTOM FONT GALLERY 
@@ -374,24 +379,25 @@
 </div>
 
 <script>
-    // Dictionary đồng bộ mẫu
+    // Dictionary đồng bộ mẫu (Đã bổ sung thêm chữ "hải" / "hai" để bạn tiện test)
     const dictionary = {
         "gian": ["間"], "thủy": ["水"], "thuy": ["水"],
         "hiệu": ["校", "効", "号"], "hieu": ["校", "効", "号"],
         "cao": ["高"], "cổ": ["古"], "co": ["古"], "dạ": ["夜"], "da": ["夜"],
         "điền": ["田"], "dien": ["田"], "điện": ["電"], "học": ["学"], "sinh": ["生"],
-        "mỹ": ["美"], "my": ["美"], "long": ["竜", "龍"], "đạo": ["道"], "dao": ["道"]
+        "mỹ": ["美"], "my": ["美"], "long": ["竜", "龍"], "đạo": ["道"], "dao": ["道"],
+        "hải": ["海"], "hai": ["海"]
     };
 
-    // Danh sách các Font hỗ trợ
+    // Danh sách các Font hỗ trợ (Đã update theo yêu cầu)
     const fontLibrary = [
         { id: 'f-standard', name: 'Đánh Máy', family: "'Noto Sans JP', sans-serif" },
-        { id: 'f-yuji-syuku', name: 'Yuji Syuku', family: "'Yuji Syuku', serif" }, // Mặc định V5 (Nét bút trang trọng)
-        { id: 'f-yuji-boku', name: 'Yuji Boku', family: "'Yuji Boku', serif" },   // Nét ướt cũ
-        { id: 'f-yuji-mai', name: 'Yuji Mai', family: "'Yuji Mai', serif" },      // Nét bay bướm
-        { id: 'f-klee', name: 'Klee One', family: "'Klee One', cursive" },        // Nét bút chì/viết tay mộc mạc
-        { id: 'f-kaisei', name: 'Kaisei', family: "'Kaisei Tokumin', serif" },    // Nét thanh đậm hiện đại
-        { id: 'f-zen', name: 'Zen Antique', family: "'Zen Antique', serif" }      // Nét cổ điển
+        { id: 'f-yuji-syuku', name: 'Yuji Syuku', family: "'Yuji Syuku', serif" }, // Giữ lại 1 Yuji
+        { id: 'f-sawarabi', name: 'Sawarabi', family: "'Sawarabi Mincho', serif" }, // Font nét mảnh thanh lịch mới thêm
+        { id: 'f-mplus', name: 'M PLUS', family: "'M PLUS Rounded 1c', sans-serif" }, // Font bo góc hiện đại mới thêm
+        { id: 'f-klee', name: 'Klee One', family: "'Klee One', cursive" },
+        { id: 'f-kaisei', name: 'Kaisei', family: "'Kaisei Tokumin', serif" },
+        { id: 'f-zen', name: 'Zen Antique', family: "'Zen Antique', serif" }
     ];
 
     let currentActiveFontId = 'f-yuji-syuku'; // Font mặc định lúc mới vào
